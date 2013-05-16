@@ -4,12 +4,15 @@ import java.util.List;
 
 public class Portfolio {
 
-	private double mValue;
+	private double mTotalValue;
+	private double mInvestedValue;
+	private double mMarginValue; // TotalValue = invested + margin
 	private int mMaxOrders;
 	private double mGlobalStop;
 	private String mName;
 	private List<Order> mOrders;
 	private double mMaxOrderValue;
+	private double mCommission = 0.03; // commission as a percentage of transaction value
 
 	static class Builder {
 
@@ -20,7 +23,7 @@ public class Portfolio {
 		}
 
 		public Builder setInitValue(double value) {
-			portfolio.mValue = value;
+			portfolio.mTotalValue = value;
 			return this;
 		}
 
@@ -43,6 +46,11 @@ public class Portfolio {
 			portfolio.mMaxOrderValue = maxOrder;
 			return this;
 		}
+		
+		public Builder setCommission(double commission) {
+			portfolio.mCommission = commission;
+			return this;
+		}
 
 		public Portfolio build() {
 			return portfolio;
@@ -54,8 +62,16 @@ public class Portfolio {
 		// Portfolio can be only create via builder
 	}
 	
-	public double getCurrentValue() {
-		return mValue;
+	private void openOrder() {
+		
+	}
+	
+	private void closeOrder() {
+		
+	}
+	
+	public double getTotalValue() {
+		return mTotalValue;
 	}
 	
 	public int getMaxOrders() {
@@ -72,6 +88,10 @@ public class Portfolio {
 	
 	public double getMaxOrderValue() {
 		return mMaxOrderValue;
+	}
+	
+	public double getCommission() {
+		return mCommission;
 	}
 	
 	public List<Order> getOrders() {
