@@ -64,7 +64,7 @@ public class Portfolio {
 	private Portfolio() {
 		// Portfolio can be only create via builder
 	}
-	
+
 	public boolean openOrder(MarketEvent event, int qty, String name) {
 		double price = event.getClosePrice();
 		// check if we can open trade
@@ -91,14 +91,15 @@ public class Portfolio {
 		double value = order.getAmount() * price;
 		mInvestedValue -= value;
 		mMarginValue += value - value * mCommission;
-		System.out.println("Closed order no. " + position + " for qty: " + order.getAmount() + " at price : " + price);
+		System.out.println("Closed order no. " + position + " for qty: "
+				+ order.getAmount() + " at price : " + price);
 		mOrders.remove(order);
 	}
 
 	public double getTotalValue() {
-		return mInvestedValue+mMarginValue;
+		return mInvestedValue + mMarginValue;
 	}
-	
+
 	public int getMaxOrders() {
 		return mMaxOrders;
 	}

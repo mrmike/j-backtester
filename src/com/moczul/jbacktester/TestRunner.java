@@ -38,8 +38,9 @@ public class TestRunner {
 				mPortfolio.openOrder(event, 100, "PKO");
 			}
 		}
-		
-		System.out.println("Portfolio total value: " + mPortfolio.getTotalValue());
+
+		System.out.println("Portfolio total value: "
+				+ mPortfolio.getTotalValue());
 	}
 
 }

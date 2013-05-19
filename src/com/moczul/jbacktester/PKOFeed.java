@@ -27,7 +27,7 @@ public class PKOFeed implements MarketDataSourceable {
 	public int getSize() {
 		return mPrices.size();
 	}
-	
+
 	@Override
 	public MarketEvent getMarketEvent(int position) {
 		if (position > mPrices.size()) {
@@ -38,13 +38,13 @@ public class PKOFeed implements MarketDataSourceable {
 		double closePrice = mPrices.get(position);
 		return new MarketEvent(10, closePrice, 25, position);
 	}
-	
+
 	@Override
 	public boolean hasPreviousPrice(int position) {
 		if (position > 0) {
 			return true;
 		}
-		
+
 		return false;
 	}
 

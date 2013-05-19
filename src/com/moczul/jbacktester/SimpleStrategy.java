@@ -16,7 +16,6 @@ public class SimpleStrategy implements Tradable {
 		mMarketFeed = source;
 	}
 
-	// simple condition buy when price movments day-day was greater than 3%
 	@Override
 	public boolean openTrade(MarketEvent event) {
 		int pos = event.getPosition();
@@ -24,7 +23,7 @@ public class SimpleStrategy implements Tradable {
 			return false;
 		}
 		double currentPrice = event.getClosePrice();
-		double previousPrice = mMarketFeed.getMarketEvent(event.getPosition()-1)
+		double previousPrice = mMarketFeed.getMarketEvent(pos - 1)
 				.getClosePrice();
 		double roi = (currentPrice - previousPrice) / previousPrice;
 		return roi > 0.03;

@@ -7,10 +7,6 @@ import com.moczul.jbacktester.interfaces.Tradable;
 public class Main {
 
 	public static void main(String[] args) {
-		/**
-		 * Magic starts here
-		 */
-		// get market feed to work on it
 		MarketDataSourceable feed = new PKOFeed();
 		Tradable simpleStrategy = new SimpleStrategy(feed);
 		Portfolio portfolio = getPortfolio();
