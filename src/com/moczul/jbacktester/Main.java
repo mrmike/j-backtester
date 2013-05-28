@@ -17,24 +17,22 @@
 
 package com.moczul.jbacktester;
 
-import com.moczul.jbacktester.data.Portfolio;
-import com.moczul.jbacktester.interfaces.MarketDataSourceable;
-import com.moczul.jbacktester.interfaces.Tradable;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Main {
 
 	public static void main(String[] args) {
-		MarketDataSourceable feed = new PKOFeed();
-		Tradable simpleStrategy = new SimpleStrategy(feed);
-		Portfolio portfolio = getPortfolio();
-		TestRunner pkoRunner = new TestRunner(feed, simpleStrategy, portfolio);
-		pkoRunner.runTest();
-	}
-
-	private static Portfolio getPortfolio() {
-		Portfolio.Builder builder = new Portfolio.Builder();
-		return builder.setInitValue(10000).setMaxOrderNumber(10)
-				.setGolbalStop(3000).setName("My portfolio")
-				.setCommission(0.03).build();
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(2008, 0, 1);
+		Date startDate = calendar.getTime();
+		calendar.set(2012, 11, 31);
+		Date endDate = calendar.getTime();
+		
+		AVBFeed avbFeed = new AVBFeed("ALTR", startDate, endDate);
+		EQRFeed eqrFeed = new EQRFeed("MCHP", startDate, endDate);
+		
+		PairTestRunner pairTest = new PairTestRunner(avbFeed, eqrFeed);
+		pairTest.startBackTest();
 	}
 }
