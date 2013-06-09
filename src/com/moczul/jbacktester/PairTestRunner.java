@@ -3,9 +3,17 @@ package com.moczul.jbacktester;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
+import com.moczul.jbacktester.data.Trade;
 import com.moczul.jbacktester.interfaces.MarketDataSourceable;
 
 public class PairTestRunner {
+
+	private static final int STOP_LOSS = -15;
+	private static final int TAKE_PROFIT = 30;
 
 	private MarketDataSourceable mFeed;
 	private MarketDataSourceable mPairFeed;
@@ -16,10 +24,16 @@ public class PairTestRunner {
 	private ArrayList<Double> mNormalizePairPrices;
 	private ArrayList<Double> mDiff;
 	private ArrayList<Double> mStdDev;
+	private ArrayList<Trade> mTrades;
+	private ArrayList<Integer> mOpenPoints;
+	private ArrayList<Integer> mClosePoints;
+	
+	private boolean mCanOpenShortTrade = true;
+	private boolean mCanOpenLongTrade = true;
 
 	private boolean mLongTrade = false;
 	private boolean mShortTrade = false;
-	
+
 	private static final int DEFAULT_PERIOD = 252;
 
 	PairTestRunner(MarketDataSourceable feed, MarketDataSourceable pairFeed) {
@@ -32,6 +46,9 @@ public class PairTestRunner {
 		mNormalizePairPrices = new ArrayList<Double>();
 		mDiff = new ArrayList<Double>();
 		mStdDev = new ArrayList<Double>();
+		mTrades = new ArrayList<Trade>();
+		mOpenPoints = new ArrayList<Integer>();
+		mClosePoints = new ArrayList<Integer>();
 
 		initData();
 	}
@@ -70,10 +87,10 @@ public class PairTestRunner {
 
 	}
 
-	public void startBackTest() {
+	public double startBackTest() {
 		int size = mFeed.getSize();
-		if (size != mPairFeed.getSize()) {
-			throw new RuntimeException("Both feed should have the same length!");
+		if (mPairFeed.getSize() < size) {
+			size = mPairFeed.getSize();
 		}
 
 		for (int i = DEFAULT_PERIOD; i < size; i++) {
@@ -84,32 +101,96 @@ public class PairTestRunner {
 			double lastDiff = mDiff.get(mDiff.size() - 1);
 			double stdDev = mStdDev.get(mStdDev.size() - 1);
 			
+			if (Math.abs(lastDiff) < 0.1 * stdDev) {
+				mCanOpenLongTrade = true;
+				mCanOpenShortTrade = true;
+			}
+
 			if (mLongTrade) {
-				if (lastDiff > 0) {
-					System.out.println("Close long trade at price: " + price + " and pair price: " + pairPrice);
+				if (lastDiff > 0 || isOverLimit(pairPrice, price)) {
+					System.out.println("Close long trade at price: " + price
+							+ " and pair price: " + pairPrice);
+					Trade lastTrade = mTrades.get(mTrades.size() - 1);
+					lastTrade.closeTrade(pairPrice, price, 0);
 					mLongTrade = false;
+					mCanOpenLongTrade = false;
+					mClosePoints.add(i);
 					continue;
 				}
 			} else if (mShortTrade) {
-				if (lastDiff < 0) {
-					System.out.println("Close short trade at price: " + price + " and pair price: " + pairPrice);
+				if (lastDiff < 0 || isOverLimit(price, pairPrice)) {
+					System.out.println("Close short trade at price: " + price
+							+ " and pair price: " + pairPrice);
+					Trade lastTrade = mTrades.get(mTrades.size() - 1);
+					lastTrade.closeTrade(price, pairPrice, 0);
 					mShortTrade = false;
+					mCanOpenShortTrade = false;
+					mClosePoints.add(i);
 					continue;
 				}
 			}
-			
+
 			if (mLongTrade || mShortTrade) {
 				continue;
 			}
-			
-			if (lastDiff < -1.5 * stdDev) {
-				System.out.println("Open long trade at price: " + price + " and pair price: " + pairPrice);
+
+			if (lastDiff < -1.5 * stdDev && mCanOpenLongTrade) {
+				System.out.println("Open long trade at price: " + price
+						+ " and pair price: " + pairPrice);
+				mTrades.add(new Trade(pairPrice, 0, price, 0, 0, 0));
 				mLongTrade = true;
-			} else if (lastDiff > 1.5 * stdDev) {
-				System.out.println("Open short trade at price: " + price + " and pair price: " + pairPrice);
+				mOpenPoints.add(i);
+			} else if (lastDiff > 1.5 * stdDev && mCanOpenShortTrade) {
+				System.out.println("Open short trade at price: " + price
+						+ " and pair price: " + pairPrice);
+				mTrades.add(new Trade(price, 0, pairPrice, 0, 0, 0));
 				mShortTrade = true;
+				mOpenPoints.add(i);
 			}
 		}
+
+		// prints result
+		double totalReturn = 0;
+		for (Trade t : mTrades) {
+			if (t.isOpen()) {
+				continue;
+			}
+			totalReturn += t.getTotalReturn();
+			System.out.println("Trade result: " + t.getTotalReturn());
+		}
+
+		return totalReturn;
+	}
+	
+	public XYDataset getDataSet() {
+		final XYSeries diff = new XYSeries("Difference");
+		final XYSeries stdev = new XYSeries("1.5 * stdev");
+		final XYSeries negativeStdev = new XYSeries("-1.5 series");
+		final XYSeries openPoints = new XYSeries("Open points");
+		final XYSeries closePoints = new XYSeries("close points");
+		
+		for (int i = 0; i < mDiff.size(); i++) {
+			diff.add(i, mDiff.get(i));
+			stdev.add(i, mStdDev.get(i) * 1.5);
+			negativeStdev.add(i, mStdDev.get(i) * -1.5);
+		}
+		
+		for (int open : mOpenPoints) {
+			openPoints.add(open, 0);
+		}
+		
+		for (int close : mClosePoints) {
+			closePoints.add(close, 0);
+		}
+		
+		final XYSeriesCollection dataset = new XYSeriesCollection();
+		dataset.addSeries(openPoints);
+		dataset.addSeries(closePoints);
+		dataset.addSeries(diff);
+		dataset.addSeries(stdev);
+		dataset.addSeries(negativeStdev);
+		
+		return dataset;
 	}
 
 	private void addNormPrices(double price, double pairPrice) {
@@ -148,6 +229,20 @@ public class PairTestRunner {
 		}
 
 		return Math.pow(sum / period, 0.5);
+	}
+
+	private boolean isOverLimit(double shortPrice, double longPrice) {
+		Trade lastTrade = mTrades.get(mTrades.size() - 1);
+		double roi = lastTrade.getCurrentReturn(shortPrice, longPrice);
+		if (roi > TAKE_PROFIT) {
+			System.out.println("TAKE_PROFIT: " + roi);
+			return true;
+		} else if (roi < STOP_LOSS) {
+			System.out.println("STOP_LOSS: " + roi);
+			return true;
+		}
+
+		return false;
 	}
 
 }

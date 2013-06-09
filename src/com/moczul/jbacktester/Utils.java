@@ -14,9 +14,33 @@ import java.util.Date;
 import java.util.List;
 
 public class Utils {
-
-	public static void setMarketFeed(File csvFile, List<Double> prices)
+	
+	public enum DataSource {
+		YAHOO("yahoo"), STOOQ("stooq");
+		
+		String mSource;
+		
+		DataSource(String source) {
+			mSource = source;
+		}
+		
+		@Override
+		public String toString() {
+			return mSource;
+		}
+	}
+	
+	public static void setMarketFeed(File csvFile, List<Double> prices, DataSource source)
 			throws FileNotFoundException {
+		int closePriceIndex = -1;
+		if (DataSource.YAHOO.equals(source)) {
+			closePriceIndex = AppConsts.YAHOO_ADJ_CLOSE;
+		} else if (DataSource.STOOQ.equals(source)) {
+			closePriceIndex = AppConsts.CSV_CLOSE_PRICE;
+		} else {
+			throw new RuntimeException("Unkown data source");
+		}
+		
 		if (!csvFile.exists()) {
 			throw new RuntimeException("File: " + csvFile.getName()
 					+ " does not exist.");
@@ -28,7 +52,7 @@ public class Utils {
 			while ((line = reader.readLine()) != null) {
 				String[] data = line.split(",");
 				double closePrice = Double
-						.valueOf(data[AppConsts.YAHOO_ADJ_CLOSE]);
+						.valueOf(data[closePriceIndex]);
 				prices.add(closePrice);
 			}
 		} catch (IOException e) {
@@ -60,7 +84,7 @@ public class Utils {
 			File f = new File(fileName);
 			if (f.exists()) {
 				System.out.println("File " + fileName + " already exists");
-				setMarketFeed(f, prices);
+				setMarketFeed(f, prices, DataSource.YAHOO);
 				return;
 			}
 			BufferedInputStream inputStream = null;
@@ -99,7 +123,7 @@ public class Utils {
 			}
 
 			System.out.println("Downloaded data for " + stockName);
-			setMarketFeed(f, prices);
+			setMarketFeed(f, prices, DataSource.YAHOO);
 		}
 	
 	private static String getFileName(String stockName, int startDay,
