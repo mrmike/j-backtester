@@ -1,7 +1,5 @@
 package com.moczul.jbacktester.data;
 
-import javax.xml.ws.Endpoint;
-
 import com.moczul.jbacktester.StrategyTester;
 
 public class Trade {
@@ -35,8 +33,10 @@ public class Trade {
 
 	private boolean mIsOpen;
 
+	private TradeType mType;
+
 	public Trade(double shortPrice, int shortQty, double longPrice,
-			int longQty, double escrow, int startPoint) {
+			int longQty, double escrow, int startPoint, TradeType type) {
 		mIsOpen = true;
 		mShortOpenPrice = shortPrice;
 		mShortQty = shortQty;
@@ -44,16 +44,53 @@ public class Trade {
 		mLongQty = longQty;
 		mEscrow = escrow;
 		mStartPoint = startPoint;
+		mType = type;
+	}
+	
+	public TradeType getType() {
+		return mType;
+	}
+	
+	public double getShortOpenPrice() {
+		return mShortOpenPrice;
+	}
+
+	public double getShortClosePrice() {
+		return mShortClosePrice;
+	}
+
+	public double getLongClosePrice() {
+		return mLongClosePrice;
+	}
+
+	public int getShortQty() {
+		return mShortQty;
+	}
+
+	public int getLongQty() {
+		return mLongQty;
+	}
+
+	public double getLongOpenPrice() {
+		return mLongOpenPrice;
 	}
 
 	public boolean isOpen() {
 		return mIsOpen;
 	}
 
-	private double getEscrow() {
+	public double getEscrow() {
 		return mEscrow;
 	}
+	
+	public int getStartPoint() {
+		return mStartPoint;
+	}
 
+	public int getEndPoint() {
+		return mEndPoint;
+	}
+	
 	public void closeTrade(double shortPrice, double longPrice, int endPoint) {
 		mShortClosePrice = shortPrice;
 		mLongClosePrice = longPrice;
@@ -95,9 +132,10 @@ public class Trade {
 
 	public double getCurrentValue(double shortPrice, double longPrice) {
 		double longVal = longPrice * mLongQty;
-		double shortVal = shortPrice * mShortQty - mShortOpenPrice * mShortQty;
-
-		return longVal + shortVal + mEscrow;
+		double shortVal = shortPrice * mShortQty; // tyle oddajemy
+		
+		double r = longVal - shortVal;
+		return mEscrow + r;
 	}
 
 	public double getCloseValue() {
@@ -108,7 +146,7 @@ public class Trade {
 	public double getCloseValue(double commission, double interestRate) {
 		double longCommision = mLongClosePrice * mLongQty * commission;
 		double shortCommission = mShortClosePrice * mShortQty * commission;
-		double shortRate = mEscrow + interestRate * getTradeLength() / 365;
+		double shortRate = mEscrow * interestRate * getTradeLength() / 365;
 
 		double val = getCurrentValue(mShortClosePrice, mLongClosePrice);
 		val -= longCommision;
@@ -117,5 +155,4 @@ public class Trade {
 
 		return val;
 	}
-
 }

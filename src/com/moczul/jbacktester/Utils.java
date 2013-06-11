@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -30,8 +32,8 @@ public class Utils {
 		}
 	}
 	
-	public static void setMarketFeed(File csvFile, List<Double> prices, DataSource source)
-			throws FileNotFoundException {
+	public static void setMarketFeed(File csvFile, List<Double> prices, List<Long> dates, DataSource source)
+			throws FileNotFoundException, ParseException {
 		int closePriceIndex = -1;
 		if (DataSource.YAHOO.equals(source)) {
 			closePriceIndex = AppConsts.YAHOO_ADJ_CLOSE;
@@ -45,6 +47,8 @@ public class Utils {
 			throw new RuntimeException("File: " + csvFile.getName()
 					+ " does not exist.");
 		}
+		
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 		BufferedReader reader = new BufferedReader(new FileReader(csvFile));
 		try {
@@ -53,6 +57,9 @@ public class Utils {
 				String[] data = line.split(",");
 				double closePrice = Double
 						.valueOf(data[closePriceIndex]);
+				String date = data[AppConsts.CSV_DATE];
+				long ms = dateFormat.parse(date).getTime();
+				dates.add(ms);
 				prices.add(closePrice);
 			}
 		} catch (IOException e) {
@@ -62,7 +69,7 @@ public class Utils {
 	
 	// perfect case for multi-threading TODO
 		public static void getStockFromYahoo(String stockName, Date startDate,
-				Date endDate, List<Double> prices) throws IOException {
+				Date endDate, List<Double> prices) throws IOException, ParseException {
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(startDate);
 			int startDay = calendar.get(Calendar.DAY_OF_MONTH);
@@ -84,7 +91,7 @@ public class Utils {
 			File f = new File(fileName);
 			if (f.exists()) {
 				System.out.println("File " + fileName + " already exists");
-				setMarketFeed(f, prices, DataSource.YAHOO);
+				setMarketFeed(f, prices, null, DataSource.YAHOO);
 				return;
 			}
 			BufferedInputStream inputStream = null;
@@ -123,7 +130,7 @@ public class Utils {
 			}
 
 			System.out.println("Downloaded data for " + stockName);
-			setMarketFeed(f, prices, DataSource.YAHOO);
+			setMarketFeed(f, prices, null, DataSource.YAHOO);
 		}
 	
 	private static String getFileName(String stockName, int startDay,
