@@ -15,7 +15,7 @@ public class StrategyTester {
 	private ArrayList<PairStock> mPairs2008 = new ArrayList<PairStock>();
 	private ArrayList<PairStock> mPairs2010 = new ArrayList<PairStock>();
 	
-	public static final double COMMISSION = 0.0035;
+	public static final double COMMISSION = 0.003;
 	public static final double INTEREST_RATE = 0.04;
 
 	private double mAccountMoney = 100000;
@@ -49,20 +49,18 @@ public class StrategyTester {
 		StooqFeed cdr = new StooqFeed("cdr", "data/2008_2012/cdr_d.csv");
 		StooqFeed ing = new StooqFeed("ing", "data/2008_2012/ing_d.csv");
 		StooqFeed eur = new StooqFeed("eur", "data/2008_2012/eur_d.csv");
-		StooqFeed sns = new StooqFeed("kgh", "data/2008_2012/sns_d.csv");
-		StooqFeed apt = new StooqFeed("apt", "data/2008_2012/apt_d.csv");
+		StooqFeed sns = new StooqFeed("sns", "data/2008_2012/sns_d.csv");
 		StooqFeed lpp = new StooqFeed("lpp", "data/2008_2012/lpp_d.csv");
 		StooqFeed kty = new StooqFeed("kty", "data/2008_2012/kty_d.csv");
 		StooqFeed hwe = new StooqFeed("hwe", "data/2008_2012/hwe_d.csv");
-		StooqFeed mil = new StooqFeed("mil", "data/2008_2012/mil_d.csv");
 		StooqFeed itg = new StooqFeed("itg", "data/2008_2012/itg_d.csv");
-		StooqFeed alc = new StooqFeed("alc", "data/2008_2012/alc_d.csv");
 		StooqFeed idm = new StooqFeed("idm", "data/2008_2012/idm_d.csv");
-		StooqFeed eat = new StooqFeed("eat", "data/2008_2012/eat_d.csv");
+		StooqFeed brs = new StooqFeed("brs", "data/2008_2012/brs_d.csv");
+		StooqFeed net = new StooqFeed("net", "data/2008_2012/net_d.csv");
 		
 		// pairs for 2008
-		mPairs2008.add(new PairStock(peo, pko));
 		mPairs2008.add(new PairStock(cie, oil));
+		mPairs2008.add(new PairStock(peo, pko));
 		mPairs2008.add(new PairStock(bio, gnb));
 		mPairs2008.add(new PairStock(bio, oil));
 		mPairs2008.add(new PairStock(ago, gtn));
@@ -76,29 +74,28 @@ public class StrategyTester {
 		mPairs2008.add(new PairStock(gtc, pxm));
 		mPairs2008.add(new PairStock(ago, pxm));
 		mPairs2008.add(new PairStock(gtc, ago));
-		mPairs2008.add(new PairStock(bio, oil));
 		mPairs2008.add(new PairStock(bhw, kgh));
 		mPairs2008.add(new PairStock(eur, sns));
 		
 		// pairs for 2010
-		mPairs2010.add(new PairStock(pko, peo));
-		mPairs2010.add(new PairStock(ago, gtn));
-		mPairs2010.add(new PairStock(bre, kgh));
-		mPairs2010.add(new PairStock(eur, itg));
-		mPairs2010.add(new PairStock(eur, alc));
-		mPairs2010.add(new PairStock(eur, mil));
+		mPairs2010.add(new PairStock(sns, cdr));
+		mPairs2010.add(new PairStock(brs, eur));
+		mPairs2010.add(new PairStock(eur, sns));
+		mPairs2010.add(new PairStock(eur, lpp));
+		mPairs2010.add(new PairStock(brs, lpp));
+		mPairs2010.add(new PairStock(sns, itg));
+		mPairs2010.add(new PairStock(brs, sns));
 		mPairs2010.add(new PairStock(sns, lpp));
-		mPairs2010.add(new PairStock(alc, mil));
-		mPairs2010.add(new PairStock(gtc, pxm));
-		mPairs2010.add(new PairStock(ech, idm));
-		mPairs2010.add(new PairStock(peo, pko));
-		mPairs2010.add(new PairStock(bhw, ech));
-		mPairs2010.add(new PairStock(gtn, ing));
-		mPairs2010.add(new PairStock(eat, kty));
-		mPairs2010.add(new PairStock(apt, gnb));
-		mPairs2010.add(new PairStock(bio, cie));
-		mPairs2010.add(new PairStock(eur, kgh));
-		mPairs2010.add(new PairStock(hwe, mil));
+		mPairs2010.add(new PairStock(kgh, net));
+		mPairs2010.add(new PairStock(gnb, gtn));
+		mPairs2010.add(new PairStock(bio, oil));
+		mPairs2010.add(new PairStock(ech, hwe));
+		mPairs2010.add(new PairStock(bio, pxm));
+		mPairs2010.add(new PairStock(cdr, lpp));
+		mPairs2010.add(new PairStock(cie, pxm));
+		mPairs2010.add(new PairStock(lts, kty));
+		mPairs2010.add(new PairStock(ago, idm));
+		
 	}
 
 	public void startBackTest() {
@@ -127,7 +124,8 @@ public class StrategyTester {
 			}
 			mHistoricValue.add(i, mAccountMoney + currentVal);
 		}
-		int size = mPairs2010.get(0).getSize();
+		
+		int size = mPairs2010.get(1).getSize();
 		for (int i = 504; i < size; i++) {
 			double currentVal = 0;
 			for (PairStock pair : mPairs2010) {
@@ -166,14 +164,12 @@ public class StrategyTester {
 		int winTrades = 0;
 		int lostTrades = 0;
 		for (PairStock p : mPairs2008) {
-//			p.printTradeSummary();
 			p.printTradeStats();
 			winTrades += p.getWinTrades();
 			lostTrades += p.getLostTrades();
 		}
 		
 		for (PairStock p : mPairs2010) {
-//			p.printTradeSummary();
 			p.printTradeStats();
 			winTrades += p.getWinTrades();
 			lostTrades += p.getLostTrades();

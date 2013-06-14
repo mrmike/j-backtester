@@ -9,8 +9,8 @@ import com.moczul.jbacktester.data.Trade.TradeType;
 
 public class PairStock {
 
-	private static final int STOP_LOSS = -12;
-	private static final int TAKE_PROFIT = 30;
+	private static final int STOP_LOSS = -10;
+	private static final int TAKE_PROFIT = 20;
 
 	private static final int DEFAULT_PERIOD = 252;
 	private static final double M_DEV_MULTIPLIER = 2;
@@ -334,24 +334,15 @@ public class PairStock {
 	
 	public void printTradeStats() {
 		int trades = mTrades.size();
-		int longTrades = 0;
-		int shortTrades = 0;
 		double totalReturn = 0;
 		for (Trade t : mTrades) {
 			totalReturn += t.getTotalReturn();
-			if (TradeType.LONG.equals(t.getType())) {
-				longTrades += 1;
-			} else {
-				shortTrades += 1;
-			}
 		}
 		System.out.println("=========Stats==========");
 		System.out.println("Pair: " + mFirstData.getName() + " and " + mSecondData.getName());
 		System.out.println("Total trades: " + getTotalTrades());
 		System.out.println("Win trades: " + getWinTrades());
 		System.out.println("Lost trades: " + getLostTrades());
-		System.out.println("Long trades: " + longTrades);
-		System.out.println("Short trades: " + shortTrades);
 		System.out.println("Average return: " + totalReturn / (double) trades);
 	}
 	
